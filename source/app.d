@@ -1718,4 +1718,3 @@ version (prob21)
 		answers.each!(a => writeln(a));
 	}
 }
-}
