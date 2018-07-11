@@ -1,0 +1,14 @@
+.dub
+docs.json
+__dummy.html
+docs/
+d-codewars.so
+d-codewars.dylib
+d-codewars.dll
+d-codewars.a
+d-codewars.lib
+d-codewars-test-*
+*.exe
+*.o
+*.obj
+*.lst
