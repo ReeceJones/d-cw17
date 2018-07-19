@@ -1718,3 +1718,107 @@ version (prob21)
 		answers.each!(a => writeln(a));
 	}
 }
+
+version(prob22)
+{
+	import std.stdio, std.typecons;
+
+	alias Point = Tuple!(int, "x", int, "y");
+	class NormalizedBuffer(uint height, uint width)
+	{
+	public:
+		this()
+		{
+
+		}
+		void push(Point p)
+		{
+			points ~= p;
+		}
+		void draw()
+		{
+			// first we need to determine the min/max x and y
+			int minx = cast(int)width, miny = cast(int)height, maxx = -1000, maxy = -1000;
+			foreach (p; points)
+			{
+				if (p.x < minx) minx = p.x;
+				if (p.x > maxx) maxx = p.x;
+				if (p.y < miny) miny = p.y;
+				if (p.y > maxy) maxy = p.y;
+			}
+			// now you can draw
+			char[height][width] drawArray;
+			foreach(p; points)
+			{
+				drawArray[(maxy - p.y)][(p.x - minx) * 2] = '#';
+			}
+			foreach(r; 0..maxy-miny+1)
+			{
+				writeln(drawArray[r]);
+			}
+		}
+	private:
+		Point[] points;
+	}
+
+	alias Manipulator = Tuple!(int, "x", int, "y");
+
+	Manipulator[] manipulators = [
+		Manipulator(1, 1),
+		Manipulator(1, 0),
+		Manipulator(1, -1),
+		Manipulator(0, -1),
+		Manipulator(-1, -1),
+		Manipulator(-1, 0),
+		Manipulator(-1, 1),
+		Manipulator(0, 1)
+	];
+	int normalize(int index)
+	{
+		if (index < 0)
+			return index + 8;
+		if (index > 7)
+			return index - 8;
+		return index;
+	}
+	void main()
+	{
+		uint direction, iterations;
+		readf!"%u %u\n"(direction,  iterations);
+		// setup points
+		direction -= 1;
+		uint[] directions = [ direction, normalize(direction - 2) ];
+		int delta = 1;
+		foreach(i; 0..iterations)
+		{
+			// we want to make a copy of the directions but at a 90 angle
+			uint[] nextIteration;
+			foreach(d; directions)
+			{
+				nextIteration ~= normalize(d + delta);
+				nextIteration ~= normalize(d - delta);
+				delta = -delta;
+			}
+			directions = nextIteration;
+		}
+		// now we just have to draw the directions
+		int x = 0, y = 0;
+		auto normalBuffer = new NormalizedBuffer!(100, 100)();
+		foreach(d; directions)
+		{
+			auto manipulator = manipulators[d];
+			foreach(i; 0..3)
+			{
+
+				normalBuffer.push(Point(
+					x + (manipulator.x * i),
+					y + (manipulator.y * i)
+				));
+			}
+			// go to the last point we pushed
+			x += 2 * manipulator.x;
+			y += 2 * manipulator.y;
+		}
+		normalBuffer.draw();
+	}
+}
