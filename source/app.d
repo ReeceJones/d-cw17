@@ -1822,3 +1822,193 @@ version(prob22)
 		normalBuffer.draw();
 	}
 }
+
+version(prob23)
+{
+	import std.stdio, std.string, std.conv;
+
+	class Key
+	{
+	public:
+		this(char id, bool[] leftCuts,  bool[] rightCuts)
+		{
+			identifier = id;
+			left = leftCuts;
+			right = rightCuts;
+		}
+		bool[] getLeft() { return left; }
+		bool[] getRight(){ return right; }
+		char getIdentifier() { return identifier; }
+		Key flip() 
+		{
+			return new Key(identifier, right, left);
+		}
+		Key invert()
+		{
+			bool[] newLeft, newRight;
+			for (int i = left.length-1; i >= 0; i--)
+			{
+				newLeft ~= left[i];
+				newRight ~= right[i];
+			}
+			return new Key(identifier, newLeft, newRight);
+		}
+		// checks this keys right cuts, and another keys left cuts 
+		bool checkRight(Key key)
+		{
+			auto adj = key.getLeft();
+			foreach(c; 0..right.length)
+			{
+				// returns false if mismatched cut/tooth
+				// == becuase we dont want them to be same
+				if (right[c] == adj[c])
+					return false;
+			}
+			return true;
+		}
+		override string toString()
+		{
+			string s = identifier ~ "\n";
+			foreach(x; 0..left.length)
+			{
+				s ~= text!bool(left[x]) ~ " " ~ " " ~ text!bool(right[x]) ~ "\n";
+			}
+			return s;
+		}
+	private:
+		char identifier;
+		bool[] left;
+		bool[] right;
+	}
+
+	Key[] solve(Key[] keys)
+	{
+		// go to the lowest possible index that doesnt check out
+		uint baseIndex = -1;
+		for (int i = keys.length-2; i >= 0; i--)
+		{
+			// normal
+			if (keys[i].checkRight(keys[i+1]) == false)
+			{
+				baseIndex = i;
+			}
+		}
+		if (baseIndex == -1)
+			return keys;
+		// explore all possible paths except the edges
+		foreach(k; baseIndex..keys.length-1)
+		{
+			// want to find ones that work
+			if (k != baseIndex)
+			{
+				// normal
+				if (keys[baseIndex].checkRight(keys[k]))
+				{
+					// reorder keys
+					Key[] newKeys = keys;
+					auto t = keys[k];
+					newKeys[k] = keys[baseIndex+1];
+					newKeys[baseIndex+1] = t;
+					return solve(newKeys);
+				}
+				// flip
+				if (keys[baseIndex].checkRight(keys[k].flip))
+				{
+					// reorder keys
+					Key[] newKeys = keys;
+					auto t = keys[k].flip;
+					newKeys[k] = keys[baseIndex+1];
+					newKeys[baseIndex+1] = t;
+					return solve(newKeys);
+				}
+				// invert
+				if (keys[baseIndex].checkRight(keys[k].invert))
+				{
+					// reorder keys
+					Key[] newKeys = keys;
+					auto t = keys[k].invert;
+					newKeys[k] = keys[baseIndex+1];
+					newKeys[baseIndex+1] = t;
+					return solve(newKeys);
+				}
+				// invert + flip
+				if (keys[baseIndex].checkRight(keys[k].flip.invert))
+				{
+					// reorder keys
+					Key[] newKeys = keys;
+					auto t = keys[k].flip.invert;
+					newKeys[k] = keys[baseIndex+1];
+					newKeys[baseIndex+1] = t;
+					return solve(newKeys);
+				}
+			}
+		}
+		// check to make sure that the last one is in the right position
+		// this is hacky but i hate this problem and dont want to do it anymore
+		uint lastKey = keys.length - 2;
+		if (keys[lastKey].checkRight(keys[keys.length-1].invert))
+			keys[lastKey] = keys[lastKey].invert;
+		return keys;
+	}
+
+	void main()
+	{
+		// for simplicity we'll say a cut is false, and a tooth will be true
+		// to be simplositc we can say there will be n+2 keys (middle keys + outside)
+		// for outside we just set the unused ones to 0
+		uint n, size;
+		readf!"%u %u\n"(n, size);
+		Key[] keys;
+		// read all input before parsing keys
+		string[] input;
+		foreach(x; 0..size+1)
+			input ~= readln.stripRight;
+		// ok, so there is a gap of 2 characters between each key, and each key is 3 characters wide
+		for (uint k = 0; k < (n+2); k++)
+		{
+			// we need to adjust for the particular key
+			uint x = (k*3)+(2*k);
+			// now we need to get id of key
+			char id = input[0][x+1];
+			// now we just need to get the cuts
+			bool[] left;
+			bool[] right;
+			foreach(l; 0..size)
+			{
+				left ~= input[1+l][x] == '<';
+				right ~= input[1+l][x+2] == '>';
+			}
+			keys ~= new Key(id, left, right);
+		}
+		// foreach(k; keys)
+		// 	writeln(k);
+		// now we just need to find the solution by going left to right
+		// find a match for first key, find a match for that match, ...
+		auto solution = solve(keys);
+		// finally we just have to output the solution
+		char[][] output = cast(char[][])input;
+		foreach(k; 1..solution.length-1)
+		{
+			uint x = (k*3)+(2*k);
+			// set identifier
+			output[0][x+1] = solution[k].getIdentifier();
+			bool[] left = solution[k].getLeft;
+			bool[] right = solution[k].getRight;
+			foreach(l; 0..size)
+			{
+				output[1+l][x] = left[l] ? '<' : ' ';
+				output[1+l][x+2] = right[l] ? '>' : ' ';
+			}
+		}
+		foreach(l; output)
+			writeln(l);
+	}
+}
+/*
+ #    P    F    R    B    #
+[|>  <|   <|    |>  <|    |]
+[|    |   <|   <|>   |>  <|]
+[|   <|>   |>   |   <|   <|]
+[|>   |   <|>   |   <|>   |]
+[|   <|   <|>  <|    |   <|]
+*/

@@ -175,6 +175,13 @@
 			"versions": [
 				"prob22"
 			]
+		},
+		{
+			"name": "prob23",
+			"targetName": "prob23",
+			"versions": [
+				"prob23"
+			]
 		}
 	]
 }

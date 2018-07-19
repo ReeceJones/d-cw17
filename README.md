@@ -5,6 +5,6 @@
 - Problem 17's Roman numeral decoder isn't perfect. For example it accepts something like MIXVI, which is invalid. But, it works within codewars' specs.
 - Problem 20 could be done differently, but I wanted to save time, so I copied some code from [d-astar](https://github.com/d-astar).
 - Problem 22 adopted from 2017 codewars solutions. Was not a fun problem.
-- Currently there are only Problems 1-22. 23, and 24 will be added later.
+- Currently there are only Problems 1-23. 24 will be added later.
 ## Building
 Building is simple. Just `dub build --config=<problem>` with any other compile options you want.
